@@ -12,7 +12,7 @@ This project generates a SQLite database with users, accounts, and documents. Pr
 
 1. Document inserts are batched instead of being run sequentially.
 2. The user and account queries are executed in an earlier, non-nested loop.
-3. Loop-unrolling has been applied to the nested for loop that creates documents for insertion. It now takes about 6500 ms to run on a 2020 MacBook Pro with 8 GB of memory.
+3. Loop-unrolling has been applied to the nested for loop that creates documents for insertion. It now takes about 16000 ms to run on a 2020 MacBook Pro with 8 GB of memory.
 
 SQL statements have been broken off into private methods to follow the DRY principle. They have been updated to include values for the DateCreated field.
 

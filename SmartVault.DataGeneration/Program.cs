@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using SmartVault.Library;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity.Infrastructure;
 using System.Data.SQLite;
 using System.IO;
@@ -23,9 +24,12 @@ namespace SmartVault.DataGeneration
 			File.WriteAllText("TestDoc.txt", $"This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}This is my test document{Environment.NewLine}");
 
 			using (var connection = new SQLiteConnection(
-				string.Format(configuration?["ConnectionStrings:DefaultConnection"] ?? "",
-				configuration?["DatabaseFileName"]))
-			) {
+				string.Format(
+					configuration?["ConnectionStrings:DefaultConnection"] ?? "",
+					configuration?["DatabaseFileName"]
+				))
+			)
+			{
 				// Windows
 				// var files = Directory.GetFiles(@"..\..\..\..\BusinessObjectSchema");
 				// macOS/Linux
@@ -34,9 +38,9 @@ namespace SmartVault.DataGeneration
 				for (int i = 0; i <= 2; i++)
 				{
 					var serializer = new XmlSerializer(typeof(BusinessObject));
-					var businessObject = serializer.Deserialize(new StreamReader(files[i])) as BusinessObject;
+					var businessObject = serializer
+						.Deserialize(new StreamReader(files[i])) as BusinessObject;
 					connection.Execute(businessObject?.Script);
-
 				}
 
 				/* Insert User and Account rows first, in a single loop */
@@ -93,49 +97,53 @@ namespace SmartVault.DataGeneration
 					connection.Execute(InsertAccountString(i + 9));
 				}
 
-
 				/* Insert documents in the nested loop using SQLite Command 
 				 * for a batch insert */
 				connection.Open();
-				SQLiteCommand sqlCommmand;
-				sqlCommmand = new SQLiteCommand("begin", connection);
-				sqlCommmand.ExecuteNonQuery();
+				SQLiteCommand sqlCommand;
+				sqlCommand = new SQLiteCommand("begin", connection);
+				sqlCommand.ExecuteNonQuery();
 				var documentNumber = 0;
 				for (int i = 0; i < 100; i++)
 				{
 					var documentPath = new FileInfo("TestDoc.txt").FullName;
-					for (int d = 0; d < 10000; d += 25, documentNumber += 25)
+					for (int d = 0; d < 10000; d += 10, documentNumber += 10)
 					{
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 1, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 2, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 3, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 4, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 5, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 6, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 7, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 8, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 9, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 10, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 11, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 12, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 13, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 14, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 15, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 16, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 17, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 18, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 19, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 20, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 21, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 22, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 23, d, documentPath), connection);
-						sqlCommmand = new SQLiteCommand(InsertDocumentString(documentNumber, i + 24, d, documentPath), connection);
+						sqlCommand.CommandType = CommandType.Text;
+						sqlCommand.CommandText = InsertDocumentString(documentNumber, i, d, documentPath);
+						sqlCommand.ExecuteNonQuery();
+						sqlCommand.CommandType = CommandType.Text;
+						sqlCommand.CommandText = InsertDocumentString(documentNumber + 1, i + 1, d, documentPath);
+						sqlCommand.ExecuteNonQuery();
+						sqlCommand.CommandType = CommandType.Text;
+						sqlCommand.CommandText = InsertDocumentString(documentNumber + 2, i + 2, d, documentPath);
+						sqlCommand.ExecuteNonQuery();
+						sqlCommand.CommandType = CommandType.Text;
+						sqlCommand.CommandText = InsertDocumentString(documentNumber + 3, i + 3, d, documentPath);
+						sqlCommand.ExecuteNonQuery();
+						sqlCommand.CommandType = CommandType.Text;
+						sqlCommand.CommandText = InsertDocumentString(documentNumber + 4, i + 4, d, documentPath);
+						sqlCommand.ExecuteNonQuery();
+						sqlCommand.CommandType = CommandType.Text;
+						sqlCommand.CommandText = InsertDocumentString(documentNumber + 5, i + 5, d, documentPath);
+						sqlCommand.ExecuteNonQuery();
+						sqlCommand.CommandType = CommandType.Text;
+						sqlCommand.CommandText = InsertDocumentString(documentNumber + 6, i + 6, d, documentPath);
+						sqlCommand.ExecuteNonQuery();
+						sqlCommand.CommandType = CommandType.Text;
+						sqlCommand.CommandText = InsertDocumentString(documentNumber + 7, i + 7, d, documentPath);
+						sqlCommand.ExecuteNonQuery();
+						sqlCommand.CommandType = CommandType.Text;
+						sqlCommand.CommandText = InsertDocumentString(documentNumber + 8, i + 8, d, documentPath);
+						sqlCommand.ExecuteNonQuery();
+						sqlCommand.CommandType = CommandType.Text;
+						sqlCommand.CommandText = InsertDocumentString(documentNumber + 9, i + 9, d, documentPath);
+						sqlCommand.ExecuteNonQuery();
 					}
 				}
 
-				sqlCommmand = new SQLiteCommand("end", connection);
-				sqlCommmand.ExecuteNonQuery();
+				sqlCommand = new SQLiteCommand("end", connection);
+				sqlCommand.ExecuteNonQuery();
 
 				var accountData = connection.Query("SELECT COUNT(*) FROM Account;");
 				Console.WriteLine($"AccountCount: {JsonConvert.SerializeObject(accountData)}");
